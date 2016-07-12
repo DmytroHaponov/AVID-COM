@@ -1,7 +1,6 @@
 /****************************** Module Header ******************************\
 Module Name:  FileContextMenuExt.h
 Project:      CppShellExtContextMenuHandler
-Copyright (c) Microsoft Corporation.
 
 The code sample demonstrates creating a Shell context menu handler with C++. 
 
@@ -13,18 +12,11 @@ registry, the items will be the same for all members of the class. By
 implementing and registering such a handler, you can dynamically add items to 
 an object's context menu, customized for the particular object.
 
-The example context menu handler adds the menu item "Display File Name (C++)"
-to the context menu when you right-click a .cpp file in the Windows Explorer. 
+The example context menu handler adds the menu item "Avid the Best"
+to the context menu when you right-click selected files in the Windows Explorer. 
 Clicking the menu item brings up a message box that displays the full path 
-of the .cpp file.
+of selected files.
 
-This source is subject to the Microsoft Public License.
-See http://www.microsoft.com/opensource/licenses.mspx#Ms-PL.
-All other rights reserved.
-
-THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
-EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 \***************************************************************************/
 
 #pragma once
@@ -60,15 +52,15 @@ private:
     // Reference count of component.
     long m_cRef;
 
-//!=======================================================
-    // The name of the selected file.
-
+    // The name of the first selected file.
 	wchar_t m_szSelectedFile[MAX_PATH];
+
+//!Haponov container for full paths+names of selected files
 	std::vector<std::string> selectedFiles;
 
-
+//! Haponov function to convert string to wstring
 	std::wstring s2ws(const std::string& s);
-//!=======================================================
+
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);
 

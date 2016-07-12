@@ -1,7 +1,6 @@
 /****************************** Module Header ******************************\
 Module Name:  dllmain.cpp
 Project:      CppShellExtContextMenuHandler
-Copyright (c) Microsoft Corporation.
 
 The file implements DllMain, and the DllGetClassObject, DllCanUnloadNow, 
 DllRegisterServer, DllUnregisterServer functions that are necessary for a COM 
@@ -14,17 +13,10 @@ DllCanUnloadNow checks if we can unload the component from the memory.
 
 DllRegisterServer registers the COM server and the context menu handler in 
 the registry by invoking the helper functions defined in Reg.h/cpp. The 
-context menu handler is associated with the .cpp file class.
+context menu handler is associated with the all file classes.
 
 DllUnregisterServer unregisters the COM server and the context menu handler. 
 
-This source is subject to the Microsoft Public License.
-See http://www.microsoft.com/opensource/licenses.mspx#Ms-PL.
-All other rights reserved.
-
-THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
-EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 \***************************************************************************/
 
 #include <windows.h>
@@ -34,8 +26,6 @@ WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 
 // {BFD98515-CD74-48A4-98E2-13D209E3EE4F}
-// When you write your own handler, you must create a new CLSID by using the 
-// "Create GUID" tool in the Tools menu, and specify the CLSID value here.
 const CLSID CLSID_FileContextMenuExt = 
 { 0xBFD98515, 0xCD74, 0x48A4, { 0x98, 0xE2, 0x13, 0xD2, 0x09, 0xE3, 0xEE, 0x4F } };
 
@@ -134,7 +124,7 @@ STDAPI DllRegisterServer(void)
     if (SUCCEEDED(hr))
     {
         // Register the context menu handler. The context menu handler is 
-        // associated with the .cpp file class.
+        // associated with the all file classes.
         hr = RegisterShellExtContextMenuHandler(L"*", 
             CLSID_FileContextMenuExt, 
             L"CppShellExtContextMenuHandler.FileContextMenuExt");

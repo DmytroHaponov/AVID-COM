@@ -1,7 +1,6 @@
 /****************************** Module Header ******************************\
 Module Name:  FileContextMenuExt.cpp
 Project:      CppShellExtContextMenuHandler
-Copyright (c) Microsoft Corporation.
 
 The code sample demonstrates creating a Shell context menu handler with C++. 
 
@@ -13,26 +12,17 @@ registry, the items will be the same for all members of the class. By
 implementing and registering such a handler, you can dynamically add items to 
 an object's context menu, customized for the particular object.
 
-The example context menu handler adds the menu item "Display File Name (C++)"
-to the context menu when you right-click a .cpp file in the Windows Explorer. 
+The example context menu handler adds the menu item "Avid the Best"
+to the context menu when you right-click any number of selected files in the Windows Explorer. 
 Clicking the menu item brings up a message box that displays the full path 
-of the .cpp file.
+of selected files.
 
-This source is subject to the Microsoft Public License.
-See http://www.microsoft.com/opensource/licenses.mspx#Ms-PL.
-All other rights reserved.
-
-THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
-EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 \***************************************************************************/
 
 #include "FileContextMenuExt.h"
 #include "resource.h"
 #include <strsafe.h>
 #include <Shlwapi.h>
-
-#include<string>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -43,13 +33,14 @@ extern long g_cDllRef;
 #define IDM_DISPLAY             0  // The command's identifier offset
 
 FileContextMenuExt::FileContextMenuExt(void) : m_cRef(1), 
-    m_pszMenuText(L"&Display File Name (C++)"),
+//! Haponov change names
+    m_pszMenuText(L"&Avid the Best"),
     m_pszVerb("cppdisplay"),
     m_pwszVerb(L"cppdisplay"),
     m_pszVerbCanonicalName("CppDisplayFileName"),
     m_pwszVerbCanonicalName(L"CppDisplayFileName"),
-    m_pszVerbHelpText("Display File Name (C++)"),
-    m_pwszVerbHelpText(L"Display File Name (C++)")
+    m_pszVerbHelpText("Avid the Best"),
+    m_pwszVerbHelpText(L"Avid the Best")
 {
     InterlockedIncrement(&g_cDllRef);
 
@@ -86,16 +77,9 @@ std::wstring FileContextMenuExt::s2ws(const std::string & s)
 
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 {
-    //wchar_t szMessage[300];
-//!
-	/*
-	std::wstring MSG;
-	for (int i = 0; i < selectedFiles.size(); ++i)
-	{
-		MSG += selectedFiles[i];
-	}
-	LPCTSTR msg = MSG.c_str();
-	*/
+	//!Haponov changes start here:
+
+	//create Message text from all strings of selectedFiles vector
 	std::string sum;
 	for (int i = 0; i < selectedFiles.size(); ++i)
 	{
@@ -104,14 +88,7 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 	std::wstring stemp = s2ws(sum);
 	LPCWSTR msg = stemp.c_str();
 	MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
-    /*
-	wchar_t szMessage[600];
-	if (SUCCEEDED(StringCchPrintf(szMessage, ARRAYSIZE(szMessage), 
-        L"The selected file is:\r\n\r\n%s", this->m_szSelectedFile)))
-    {
-        MessageBox(hWnd, szMessage, L"CppShellExtContextMenuHandler", MB_OK);
-    }
-	*/
+	//! end of Haponov changes
 }
 
 
@@ -175,9 +152,10 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
         HDROP hDrop = static_cast<HDROP>(GlobalLock(stm.hGlobal));
         if (hDrop != NULL)
         {
+//!start of Haponov CHANGES:
+//!****************************************************
 //! fill vector selectedFiles with all the selected files
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-//!            if (nFiles == 1)
 			DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
 			for (int i=0; i < nFiles; ++i)
             {
@@ -190,7 +168,9 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 					selectedFiles.push_back(atLast);
                 }
             }
+
 			if (selectedFiles.size()) hr = S_OK;
+//! end of Haponov changes 
 //!****************************************************
             GlobalUnlock(stm.hGlobal);
         }
@@ -227,9 +207,7 @@ IFACEMETHODIMP FileContextMenuExt::QueryContextMenu(
     }
 
     // Use either InsertMenu or InsertMenuItem to add menu items.
-    // Learn how to add sub-menu from:
-    // http://www.codeproject.com/KB/shell/ctxextsubmenu.aspx
-
+   
     MENUITEMINFO mii = { sizeof(mii) };
     mii.fMask = MIIM_BITMAP | MIIM_STRING | MIIM_FTYPE | MIIM_ID | MIIM_STATE;
     mii.wID = idCmdFirst + IDM_DISPLAY;
