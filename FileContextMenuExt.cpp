@@ -31,6 +31,9 @@ WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 #include "resource.h"
 #include <strsafe.h>
 #include <Shlwapi.h>
+
+#include<string>
+
 #pragma comment(lib, "shlwapi.lib")
 
 
@@ -69,14 +72,46 @@ FileContextMenuExt::~FileContextMenuExt(void)
 }
 
 
+std::wstring FileContextMenuExt::s2ws(const std::string & s)
+{
+		int len;
+		int slength = (int)s.length() + 1;
+		len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+		wchar_t* buf = new wchar_t[len];
+		MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+		std::wstring r(buf);
+		delete[] buf;
+		return r;
+}
+
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 {
-    wchar_t szMessage[300];
-    if (SUCCEEDED(StringCchPrintf(szMessage, ARRAYSIZE(szMessage), 
+    //wchar_t szMessage[300];
+//!
+	/*
+	std::wstring MSG;
+	for (int i = 0; i < selectedFiles.size(); ++i)
+	{
+		MSG += selectedFiles[i];
+	}
+	LPCTSTR msg = MSG.c_str();
+	*/
+	std::string sum;
+	for (int i = 0; i < selectedFiles.size(); ++i)
+	{
+		sum += selectedFiles[i]; sum += "\n";
+	}
+	std::wstring stemp = s2ws(sum);
+	LPCWSTR msg = stemp.c_str();
+	MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
+    /*
+	wchar_t szMessage[600];
+	if (SUCCEEDED(StringCchPrintf(szMessage, ARRAYSIZE(szMessage), 
         L"The selected file is:\r\n\r\n%s", this->m_szSelectedFile)))
     {
         MessageBox(hWnd, szMessage, L"CppShellExtContextMenuHandler", MB_OK);
     }
+	*/
 }
 
 
@@ -140,20 +175,23 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
         HDROP hDrop = static_cast<HDROP>(GlobalLock(stm.hGlobal));
         if (hDrop != NULL)
         {
-            // Determine how many files are involved in this operation. This 
-            // code sample displays the custom context menu item when only 
-            // one file is selected. 
+//! fill vector selectedFiles with all the selected files
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-            if (nFiles == 1)
+//!            if (nFiles == 1)
+			DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
+			for (int i=0; i < nFiles; ++i)
             {
+				wchar_t temp[MAX_PATH];
                 // Get the path of the file.
-                if (0 != DragQueryFile(hDrop, 0, m_szSelectedFile, 
-                    ARRAYSIZE(m_szSelectedFile)))
+                if (0 != DragQueryFile(hDrop, i, temp, ARRAYSIZE(temp)))
                 {
-                    hr = S_OK;
+					std::wstring ws(temp);
+					std::string atLast(ws.begin(), ws.end());
+					selectedFiles.push_back(atLast);
                 }
             }
-
+			if (selectedFiles.size()) hr = S_OK;
+//!****************************************************
             GlobalUnlock(stm.hGlobal);
         }
 
