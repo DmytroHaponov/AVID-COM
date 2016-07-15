@@ -25,6 +25,7 @@ of selected files.
 #include <Shlwapi.h>
 
 #include <cstddef>
+#include <sstream>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -158,18 +159,33 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 //!****************************************************
 //! fill vector selectedFiles with all the selected files
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-			DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
+			//DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
 			for (int i=0; i < nFiles; ++i)
             {
 				wchar_t temp[MAX_PATH];
-                // Get the path of the file.
+                // Get the name of the file.
                 if (0 != DragQueryFile(hDrop, i, temp, ARRAYSIZE(temp)))
                 {
 					std::wstring ws(temp);
 					std::string atLast(ws.begin(), ws.end());
 
+					HANDLE hFile = CreateFile(ws.c_str(),
+						GENERIC_READ,
+						FILE_SHARE_READ,
+						NULL,
+						OPEN_EXISTING,
+						FILE_ATTRIBUTE_NORMAL,
+						NULL);
+					dwFileSize = GetFileSize(hFile, NULL);
+					
 					std::size_t found = atLast.find_last_of("/\\");
 					atLast = atLast.substr(found + 1);
+
+					std::ostringstream stream;
+					stream << dwFileSize;
+					std::string num = stream.str();
+
+					atLast += "  "; atLast += num;
 
 					selectedFiles.push_back(atLast);
                 }

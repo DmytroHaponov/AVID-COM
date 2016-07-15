@@ -53,8 +53,8 @@ private:
     long m_cRef;
 
     // The name of the first selected file.
-	wchar_t m_szSelectedFile[MAX_PATH];
-
+	//wchar_t m_szSelectedFile[MAX_PATH];
+	DWORD dwFileSize;
 //!Haponov container for full paths+names of selected files
 	std::vector<std::string> selectedFiles;
 
