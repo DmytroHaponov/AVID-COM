@@ -24,6 +24,8 @@ of selected files.
 #include <strsafe.h>
 #include <Shlwapi.h>
 
+#include <cstddef>
+
 #pragma comment(lib, "shlwapi.lib")
 
 
@@ -165,6 +167,10 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
                 {
 					std::wstring ws(temp);
 					std::string atLast(ws.begin(), ws.end());
+
+					std::size_t found = atLast.find_last_of("/\\");
+					atLast = atLast.substr(found + 1);
+
 					selectedFiles.push_back(atLast);
                 }
             }
