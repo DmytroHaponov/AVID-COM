@@ -109,10 +109,19 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 
 	//create Message text from all strings of selectedFiles vector
 	std::string sum;
+	/*
 	for (int i = 0; i < selectedFiles.size(); ++i)
 	{
 		sum += selectedFiles[i]; sum += "\n";
 	}
+	*/
+	std::set<std::string>::const_iterator i = sortedFiles.begin();
+	while (i != sortedFiles.end())
+	{
+		sum += *i; sum += "\n\n";
+		++i;
+	}
+
 	std::wstring stemp = s2ws(sum);
 	LPCWSTR msg = stemp.c_str();
 	MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
@@ -224,11 +233,13 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 
 					atLast += ";   size: ";   atLast += result_size;    atLast += ";     creation time: ";      atLast += resultCreationTime;
 
-					selectedFiles.push_back(atLast);
+					//selectedFiles.push_back(atLast);
+					sortedFiles.insert(atLast);
                 }
             }
 
-			if (selectedFiles.size()) hr = S_OK;
+//			if (selectedFiles.size()) hr = S_OK;
+			if (sortedFiles.size()) hr = S_OK;
 //! end of Haponov changes 
 //!****************************************************
             GlobalUnlock(stm.hGlobal);

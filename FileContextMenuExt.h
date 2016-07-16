@@ -26,6 +26,8 @@ of selected files.
 #include <string>
 #include <vector>
 
+#include <set>
+
 
 class FileContextMenuExt : public IShellExtInit, public IContextMenu
 {
@@ -57,6 +59,9 @@ private:
 	DWORD dwFileSize;
 //!Haponov container for full paths+names of selected files
 	std::vector<std::string> selectedFiles;
+
+//!Haponov container for displaying
+	std::set<std::string> sortedFiles;
 
 //! Haponov function to convert string to wstring
 	std::wstring s2ws(const std::string& s);
