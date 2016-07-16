@@ -27,6 +27,8 @@ of selected files.
 #include <cstddef>
 #include <sstream>
 
+#include <tchar.h>
+
 #pragma comment(lib, "shlwapi.lib")
 
 
@@ -76,6 +78,29 @@ std::wstring FileContextMenuExt::s2ws(const std::string & s)
 		std::wstring r(buf);
 		delete[] buf;
 		return r;
+}
+
+BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize)
+{
+	
+	FILETIME ftCreate, ftAccess, ftWrite;
+	SYSTEMTIME stUTC, stLocal;
+	DWORD dwRet;
+
+	// Retrieve the file times for the file.
+	if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite))
+		return FALSE;
+
+	// Convert the creation time to local time.
+	FileTimeToSystemTime(&ftCreate, &stUTC);
+	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+	
+	// Build a string showing the date and time.
+	dwRet = StringCchPrintfW(lpszString, dwSize, TEXT("%02d/%02d/%d  %02d:%02d"), stLocal.wMonth, stLocal.wDay, stLocal.wYear, stLocal.wHour, stLocal.wMinute);
+
+	if (S_OK == dwRet)
+		return TRUE;
+	else return FALSE;
 }
 
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
@@ -162,30 +187,42 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 			//DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
 			for (int i=0; i < nFiles; ++i)
             {
-				wchar_t temp[MAX_PATH];
+				wchar_t temp_forName[MAX_PATH];
                 // Get the name of the file.
-                if (0 != DragQueryFile(hDrop, i, temp, ARRAYSIZE(temp)))
+                if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
                 {
-					std::wstring ws(temp);
-					std::string atLast(ws.begin(), ws.end());
+					std::wstring ws_name(temp_forName);
+					std::string atLast(ws_name.begin(), ws_name.end());
 
-					HANDLE hFile = CreateFile(ws.c_str(),
+					std::size_t found = atLast.find_last_of("/\\");
+					atLast = atLast.substr(found + 1);					//got a string with filename WO full path
+					
+					HANDLE hFile = CreateFile(ws_name.c_str(),
 						GENERIC_READ,
 						FILE_SHARE_READ,
 						NULL,
 						OPEN_EXISTING,
 						FILE_ATTRIBUTE_NORMAL,
 						NULL);
+
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						//printf("CreateFile failed with %d\n", GetLastError());
+						return hr;
+					}
+
 					dwFileSize = GetFileSize(hFile, NULL);
 					
-					std::size_t found = atLast.find_last_of("/\\");
-					atLast = atLast.substr(found + 1);
-
 					std::ostringstream stream;
 					stream << dwFileSize;
-					std::string num = stream.str();
+					std::string result_size = stream.str();						//got a string with size of file
 
-					atLast += "  "; atLast += num;
+					wchar_t temp_forCreationTime[MAX_PATH];		
+					if( ! GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime))) return hr;
+					std::wstring ws_creationTime(temp_forCreationTime);	
+					std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());
+
+					atLast += ";   size: ";   atLast += result_size;    atLast += ";     creation time: ";      atLast += resultCreationTime;
 
 					selectedFiles.push_back(atLast);
                 }

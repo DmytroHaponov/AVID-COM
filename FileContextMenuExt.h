@@ -61,6 +61,9 @@ private:
 //! Haponov function to convert string to wstring
 	std::wstring s2ws(const std::string& s);
 
+	//! Haponov function to get file creation time
+	BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
+
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);
 
