@@ -113,7 +113,7 @@ DWORD FileContextMenuExt::getCheckSum(wchar_t * path)
 	char byte;
 	std::ifstream in(path, std::ifstream::binary);
 	if (!in)
-		return -1;
+		return 0;
 	else
 	{
 		while (in)
@@ -167,6 +167,7 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 		NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
+		atLast = "error opening file";
 		//printf("CreateFile failed with %d\n", GetLastError());
 		return; //FALSE;
 	}
@@ -188,7 +189,7 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 	std::string result_checkSum = streamCheckSum.str();
 
 
-	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;  atLast += ";   checksum: "; atLast += result_checkSum;
+	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;   atLast += ";   checksum: ";   atLast += result_checkSum;
 	mu.lock();
 	//selectedFiles.push_back(atLast);
 	sortedFiles.insert(atLast);
@@ -261,26 +262,42 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 //!****************************************************
 //! fill vector selectedFiles with all the selected files
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-			
-			std::thread *threads = new std::thread [nFiles];
-
-			//DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
-			for (int i=0; i < nFiles; ++i)
-            {
-				wchar_t temp_forName[MAX_PATH];
-//checksum = 0;
-                // Get the name of the file.
-                if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
-                {
-					threads[i] = std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName);
-                }
-            }
-			for (int i = 0; i < nFiles; ++i)
+			if (nFiles > 1)
 			{
-				threads[i].join();
+				std::thread *threads = new std::thread[nFiles - 1];
+				//DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
+				for (int i = 0; i < nFiles - 1; ++i)
+				{
+					wchar_t temp_forName[MAX_PATH];
+
+					// Get the name of the file.
+					if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
+					{
+						threads[i] = std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName);
+					}
+				}
+				wchar_t temp_forName[MAX_PATH];
+				for (int i = nFiles - 1; i < nFiles; ++i)
+				{
+					if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
+						processSelectedFiles(temp_forName);
+				}
+				for (int i = 0; i < nFiles -1; ++i)
+				{
+					threads[i].join();
+				}
+				delete [] threads;
+			}
+			wchar_t temp_forName[MAX_PATH];
+			// Get the name of the file.
+			for (int i = nFiles - 1; i < nFiles; ++i)
+			{
+				if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
+					processSelectedFiles(temp_forName);
 			}
 //			if (selectedFiles.size()) hr = S_OK;
 			if (sortedFiles.size()) hr = S_OK;
+			
 //! end of Haponov changes 
 //!****************************************************
             GlobalUnlock(stm.hGlobal);
