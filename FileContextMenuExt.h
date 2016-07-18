@@ -54,20 +54,25 @@ private:
     // Reference count of component.
     long m_cRef;
 
-    // The name of the first selected file.
-	//wchar_t m_szSelectedFile[MAX_PATH];
+//! Haponov size of current file
 	DWORD dwFileSize;
-//!Haponov container for full paths+names of selected files
-	std::vector<std::string> selectedFiles;
+//! Haponov container for full paths+names of selected files
+//	std::vector<std::string> selectedFiles;
 
-//!Haponov container for displaying
+//! Haponov container for displaying files info
 	std::set<std::string> sortedFiles;
 
-//! Haponov function to convert string to wstring
+//! Haponov - convert string to wstring
 	std::wstring s2ws(const std::string& s);
 
-	//! Haponov function to get file creation time
+//! Haponov - get file creation time
 	BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
+
+//! Haponov per-byte sum of file bytes
+	DWORD checksum;
+
+//! Haponov function to calculate checksum
+	BOOL getCheckSum(wchar_t * path);
 
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);

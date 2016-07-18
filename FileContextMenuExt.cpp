@@ -28,6 +28,7 @@ of selected files.
 #include <sstream>
 
 #include <tchar.h>
+#include <fstream>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -37,8 +38,11 @@ extern long g_cDllRef;
 
 #define IDM_DISPLAY             0  // The command's identifier offset
 
-FileContextMenuExt::FileContextMenuExt(void) : m_cRef(1), 
+FileContextMenuExt::FileContextMenuExt(void) : m_cRef(1),
 //! Haponov change names
+dwFileSize(0),
+checksum(0),
+
     m_pszMenuText(L"&Avid the Best"),
     m_pszVerb("cppdisplay"),
     m_pwszVerb(L"cppdisplay"),
@@ -101,6 +105,27 @@ BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD 
 	if (S_OK == dwRet)
 		return TRUE;
 	else return FALSE;
+}
+
+BOOL FileContextMenuExt::getCheckSum(wchar_t * path)
+{
+	
+	char byte;
+	//std::cout << checksum << "\n";
+	std::ifstream in(path, std::ifstream::binary);
+	if (!in)
+		return FALSE;
+	else
+	{
+		while (in)
+		{
+			in.get(byte);
+			//std::cout << "read byte " << byte << std::endl;
+			checksum += byte;
+			//std::cout << "checksum is " << checksum << std::endl;
+		}
+	}
+	return TRUE;
 }
 
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
@@ -197,6 +222,7 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 			for (int i=0; i < nFiles; ++i)
             {
 				wchar_t temp_forName[MAX_PATH];
+				checksum = 0;
                 // Get the name of the file.
                 if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
                 {
@@ -213,25 +239,30 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 						OPEN_EXISTING,
 						FILE_ATTRIBUTE_NORMAL,
 						NULL);
-
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
 						//printf("CreateFile failed with %d\n", GetLastError());
 						return hr;
 					}
 
-					dwFileSize = GetFileSize(hFile, NULL);
-					
-					std::ostringstream stream;
-					stream << dwFileSize;
-					std::string result_size = stream.str();						//got a string with size of file
+					dwFileSize = GetFileSize(hFile, NULL);			
+					std::ostringstream streamSize;
+					streamSize << dwFileSize;
+					std::string result_size = streamSize.str();						//got a string with size of file
 
 					wchar_t temp_forCreationTime[MAX_PATH];		
 					if( ! GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime))) return hr;
 					std::wstring ws_creationTime(temp_forCreationTime);	
-					std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());
+					std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());					//got a string with creation time of file
 
-					atLast += ";   size: ";   atLast += result_size;    atLast += ";     creation time: ";      atLast += resultCreationTime;
+
+					if (!getCheckSum(temp_forName)) return hr;
+					std::ostringstream streamCheckSum;
+					streamCheckSum << checksum;
+					std::string result_checkSum = streamCheckSum.str();
+
+
+					atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;  atLast += ";   checksum: "; atLast += result_checkSum;
 
 					//selectedFiles.push_back(atLast);
 					sortedFiles.insert(atLast);
