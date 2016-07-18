@@ -40,8 +40,8 @@ extern long g_cDllRef;
 
 FileContextMenuExt::FileContextMenuExt(void) : m_cRef(1),
 //! Haponov change names
-dwFileSize(0),
-checksum(0),
+//dwFileSize(0),
+//checksum(0),
 
     m_pszMenuText(L"&Avid the Best"),
     m_pszVerb("cppdisplay"),
@@ -107,25 +107,22 @@ BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD 
 	else return FALSE;
 }
 
-BOOL FileContextMenuExt::getCheckSum(wchar_t * path)
+DWORD FileContextMenuExt::getCheckSum(wchar_t * path)
 {
-	
+	DWORD checksum = 0;
 	char byte;
-	//std::cout << checksum << "\n";
 	std::ifstream in(path, std::ifstream::binary);
 	if (!in)
-		return FALSE;
+		return -1;
 	else
 	{
 		while (in)
 		{
 			in.get(byte);
-			//std::cout << "read byte " << byte << std::endl;
 			checksum += byte;
-			//std::cout << "checksum is " << checksum << std::endl;
 		}
 	}
-	return TRUE;
+	return checksum;
 }
 
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
@@ -151,6 +148,52 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 	LPCWSTR msg = stemp.c_str();
 	MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
 	//! end of Haponov changes
+}
+
+void FileContextMenuExt::processSelectedFiles(wchar_t * path)
+{
+	std::wstring ws_name(path);
+	std::string atLast(ws_name.begin(), ws_name.end());
+
+	std::size_t found = atLast.find_last_of("/\\");
+	atLast = atLast.substr(found + 1);					//got a string with filename WO full path
+
+	HANDLE hFile = CreateFile(ws_name.c_str(),
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		//printf("CreateFile failed with %d\n", GetLastError());
+		return; //FALSE;
+	}
+
+	DWORD dwFileSize = GetFileSize(hFile, NULL);
+	std::ostringstream streamSize;
+	streamSize << dwFileSize;
+	std::string result_size = streamSize.str();						//got a string with size of file
+
+	wchar_t temp_forCreationTime[MAX_PATH];
+	if (!GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime))) return;//FALSE;
+	std::wstring ws_creationTime(temp_forCreationTime);
+	std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());					//got a string with creation time of file
+
+
+	DWORD checksum = getCheckSum(path);
+	std::ostringstream streamCheckSum;
+	streamCheckSum << checksum;
+	std::string result_checkSum = streamCheckSum.str();
+
+
+	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;  atLast += ";   checksum: "; atLast += result_checkSum;
+	mu.lock();
+	//selectedFiles.push_back(atLast);
+	sortedFiles.insert(atLast);
+	mu.unlock();
+	return;//TRUE;
 }
 
 
@@ -218,57 +261,24 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 //!****************************************************
 //! fill vector selectedFiles with all the selected files
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
+			
+			std::thread *threads = new std::thread [nFiles];
+
 			//DragQueryFile(hDrop, 0, m_szSelectedFile, ARRAYSIZE(m_szSelectedFile));
 			for (int i=0; i < nFiles; ++i)
             {
 				wchar_t temp_forName[MAX_PATH];
-				checksum = 0;
+//checksum = 0;
                 // Get the name of the file.
                 if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
                 {
-					std::wstring ws_name(temp_forName);
-					std::string atLast(ws_name.begin(), ws_name.end());
-
-					std::size_t found = atLast.find_last_of("/\\");
-					atLast = atLast.substr(found + 1);					//got a string with filename WO full path
-					
-					HANDLE hFile = CreateFile(ws_name.c_str(),
-						GENERIC_READ,
-						FILE_SHARE_READ,
-						NULL,
-						OPEN_EXISTING,
-						FILE_ATTRIBUTE_NORMAL,
-						NULL);
-					if (hFile == INVALID_HANDLE_VALUE)
-					{
-						//printf("CreateFile failed with %d\n", GetLastError());
-						return hr;
-					}
-
-					dwFileSize = GetFileSize(hFile, NULL);			
-					std::ostringstream streamSize;
-					streamSize << dwFileSize;
-					std::string result_size = streamSize.str();						//got a string with size of file
-
-					wchar_t temp_forCreationTime[MAX_PATH];		
-					if( ! GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime))) return hr;
-					std::wstring ws_creationTime(temp_forCreationTime);	
-					std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());					//got a string with creation time of file
-
-
-					if (!getCheckSum(temp_forName)) return hr;
-					std::ostringstream streamCheckSum;
-					streamCheckSum << checksum;
-					std::string result_checkSum = streamCheckSum.str();
-
-
-					atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;  atLast += ";   checksum: "; atLast += result_checkSum;
-
-					//selectedFiles.push_back(atLast);
-					sortedFiles.insert(atLast);
+					threads[i] = std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName);
                 }
             }
-
+			for (int i = 0; i < nFiles; ++i)
+			{
+				threads[i].join();
+			}
 //			if (selectedFiles.size()) hr = S_OK;
 			if (sortedFiles.size()) hr = S_OK;
 //! end of Haponov changes 

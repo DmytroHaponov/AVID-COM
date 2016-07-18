@@ -24,8 +24,9 @@ of selected files.
 #include <windows.h>
 #include <shlobj.h>     // For IShellExtInit and IContextMenu
 #include <string>
-#include <vector>
-
+//#include <vector>
+#include <thread>
+#include <mutex>
 #include <set>
 
 
@@ -55,7 +56,7 @@ private:
     long m_cRef;
 
 //! Haponov size of current file
-	DWORD dwFileSize;
+//	DWORD dwFileSize;
 //! Haponov container for full paths+names of selected files
 //	std::vector<std::string> selectedFiles;
 
@@ -69,10 +70,10 @@ private:
 	BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
 
 //! Haponov per-byte sum of file bytes
-	DWORD checksum;
+//	DWORD checksum;
 
 //! Haponov function to calculate checksum
-	BOOL getCheckSum(wchar_t * path);
+	DWORD getCheckSum(wchar_t * path);
 
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);
@@ -85,4 +86,8 @@ private:
     PCWSTR m_pwszVerbCanonicalName;
     PCSTR m_pszVerbHelpText;
     PCWSTR m_pwszVerbHelpText;
+
+	std::mutex mu;
+
+	void processSelectedFiles(wchar_t * path);
 };
