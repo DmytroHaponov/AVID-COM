@@ -48,6 +48,7 @@ m_pszVerbCanonicalName("CppDisplayFileName"),
 m_pwszVerbCanonicalName(L"CppDisplayFileName"),
 m_pszVerbHelpText("Avid the Best"),
 m_pwszVerbHelpText(L"Avid the Best")
+//! end of Haponov change names
 {
 	InterlockedIncrement(&g_cDllRef);
 
@@ -69,7 +70,7 @@ FileContextMenuExt::~FileContextMenuExt(void)
 	InterlockedDecrement(&g_cDllRef);
 }
 
-
+//! Haponov function
 std::wstring FileContextMenuExt::s2ws(const std::string & s)
 {
 	int len;
@@ -82,9 +83,9 @@ std::wstring FileContextMenuExt::s2ws(const std::string & s)
 	return r;
 }
 
+//! Haponov function - modified other msdn code sample
 BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize)
 {
-
 	FILETIME ftCreate, ftAccess, ftWrite;
 	SYSTEMTIME stUTC, stLocal;
 	DWORD dwRet;
@@ -98,13 +99,14 @@ BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD 
 	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
 	// Build a string showing the date and time.
-	dwRet = StringCchPrintfW(lpszString, dwSize, TEXT("%02d/%02d/%d  %02d:%02d"), stLocal.wMonth, stLocal.wDay, stLocal.wYear, stLocal.wHour, stLocal.wMinute);
+	dwRet = StringCchPrintfW(lpszString, dwSize, TEXT("%02d/%02d/%d %02d:%02d"), stLocal.wMonth, stLocal.wDay, stLocal.wYear, stLocal.wHour, stLocal.wMinute);
 
 	if (S_OK == dwRet)
 		return TRUE;
 	else return FALSE;
 }
 
+//! Haponov function
 DWORD FileContextMenuExt::getCheckSum(wchar_t * path)
 {
 	DWORD checksum = 0;
@@ -125,9 +127,9 @@ DWORD FileContextMenuExt::getCheckSum(wchar_t * path)
 
 void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 {
-	//!Haponov changes start here:
+	//! Haponov changes start here:
 
-	//create Message text from all strings of selectedFiles vector
+	//! Haponov: create Message text from all strings of sortedFiles std::set
 	std::string sum;
 	std::set<std::string>::const_iterator i = sortedFiles.begin();
 	while (i != sortedFiles.end())
@@ -135,25 +137,28 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 		sum += *i; if (sum.empty()) { sum = "empty";	break; }
 		if (++i != sortedFiles.end()) sum += "\n\n";
 	}
-
+	//! Haponov: prepare message string to be sent to MessageBox
 	std::wstring stemp = s2ws(sum);
 	LPCWSTR msg = stemp.c_str();
 	MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
 	//! end of Haponov changes
 }
 
+//! Haponov function
 void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 {
 	//! Haponov: all string formats must be converted to std::string 
 	//! in order to conveniently use strings in STL containers
 	//!------------------------------
 
+	//! Haponov: convert full path of file to string
 	std::wstring ws_name(path);
-	std::string atLast(ws_name.begin(), ws_name.end()); // Haponov: got full path of file
-
+	std::string atLast(ws_name.begin(), ws_name.end()); 
+	//! Haponov: get a string with filename only - WO full path
 	std::size_t found = atLast.find_last_of("/\\");
-	atLast = atLast.substr(found + 1);					// Haponov: got a string with filename WO full path
+	atLast = atLast.substr(found + 1);					
 
+	//! Haponov: create file handle for further usage
 	HANDLE hFile = CreateFile(ws_name.c_str(),
 		GENERIC_READ,
 		FILE_SHARE_READ,
@@ -164,31 +169,34 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		atLast = "error opening file";
-		//printf("CreateFile failed with %d\n", GetLastError());
 		return;
 	}
 
+	// Haponov: get a string with size of file
 	DWORD dwFileSize = GetFileSize(hFile, NULL);
 	std::ostringstream streamSize;
 	streamSize << dwFileSize;
-	std::string result_size = streamSize.str();			// Haponov: got a string with size of file
+	std::string result_size = streamSize.str();			
 
+	// Haponov: get a string with creation time of file
 	wchar_t temp_forCreationTime[MAX_PATH];
 	if (!GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime)))
 		return;
 	std::wstring ws_creationTime(temp_forCreationTime);
-	std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());	// Haponov: got a string with creation time of file
+	std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());	
 
-
+	// Haponov: get a string with ala checksum
 	DWORD checksum = getCheckSum(path);
 	std::ostringstream streamCheckSum;
 	streamCheckSum << checksum;
 	std::string result_checkSum = streamCheckSum.str();
 
 	// Haponov: create a resulting string for displaying
-	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";   atLast += resultCreationTime;   atLast += ";   checksum: ";   atLast += result_checkSum;
+	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";  
+	atLast += resultCreationTime;   atLast += ";   checksum: ";   atLast += result_checkSum;
 
-	mu.lock(); // Haponov: protect shared std::set<std::string> sortedFiles
+	// Haponov: protect shared std::set<std::string> sortedFiles
+	mu.lock(); 
 	sortedFiles.insert(atLast);
 	mu.unlock();
 	return;
@@ -255,51 +263,38 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 		HDROP hDrop = static_cast<HDROP>(GlobalLock(stm.hGlobal));
 		if (hDrop != NULL)
 		{
-			//!start of Haponov CHANGES:
+			//! start of Haponov CHANGES:
 			//!****************************************************
-			//! fill vector selectedFiles with all the selected files
+			//! Haponov: number of threads depends on number of selected files 
 			UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
 			if (nFiles)
 			{
 				if (nFiles > 1)
 				{
-					std::thread *threads = new std::thread[nFiles - 1];
+					std::vector<std::thread> threads;
 
-					for (int i = 0; i < nFiles - 1; ++i)
+					for (int i = 0; i < nFiles; ++i)
 					{
 						wchar_t temp_forName[MAX_PATH];
-
 						// Get the name of the file.
-						if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
+						if (0 != DragQueryFile(hDrop, i, temp_forName /*such path is written to temp_forName*/, ARRAYSIZE(temp_forName)))
 						{
-							threads[i] = std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName);
+							threads.push_back(std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName));
 						}
 					}
-					wchar_t temp_forName[MAX_PATH];
-					for (int i = nFiles - 1; i < nFiles; ++i)
-					{
-						if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
-						{
-							processSelectedFiles(temp_forName);
-						}
-					}
-
+					//! Haponov: use the main thread to do part of the work
 					wchar_t temp1_forName[MAX_PATH];
 						if (0 != DragQueryFile(hDrop, 0, temp1_forName, ARRAYSIZE(temp1_forName)))
 						{
 							processSelectedFiles(temp1_forName);
 						}
 					
-
-
-					for (int i = 0; i < nFiles - 1; ++i)
+					for (auto &t : threads)
 					{
-						threads[i].join();
+						t.join();
 					}
-
-					delete[] threads;
 				}
-
+				//! Haponov: use only main thread in case a sinle file is selected
 				else
 				{
 					wchar_t temp_forName[MAX_PATH];
@@ -315,7 +310,6 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 			//!****************************************************
 			GlobalUnlock(stm.hGlobal);
 		}
-
 		ReleaseStgMedium(&stm);
 	}
 
@@ -489,7 +483,7 @@ IFACEMETHODIMP FileContextMenuExt::GetCommandString(UINT_PTR idCommand,
 	UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax)
 {
 	HRESULT hr = E_INVALIDARG;
-
+    
 	if (idCommand == IDM_DISPLAY)
 	{
 		switch (uFlags)

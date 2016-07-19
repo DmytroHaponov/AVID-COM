@@ -24,7 +24,7 @@ of selected files.
 #include <windows.h>
 #include <shlobj.h>     // For IShellExtInit and IContextMenu
 #include <string>
-//#include <vector>
+#include <vector>
 #include <thread>
 #include <mutex>
 #include <set>
@@ -55,11 +55,6 @@ private:
     // Reference count of component.
     long m_cRef;
 
-//! Haponov size of current file
-//	DWORD dwFileSize;
-//! Haponov container for full paths+names of selected files
-//	std::vector<std::string> selectedFiles;
-
 //! Haponov container for displaying files info
 	std::set<std::string> sortedFiles;
 
@@ -69,10 +64,7 @@ private:
 //! Haponov - get file creation time
 	BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
 
-//! Haponov per-byte sum of file bytes
-//	DWORD checksum;
-
-//! Haponov function to calculate checksum
+//! Haponov - calculate checksum
 	DWORD getCheckSum(wchar_t * path);
 
     // The method that handles the "display" verb.
@@ -87,7 +79,11 @@ private:
     PCSTR m_pszVerbHelpText;
     PCWSTR m_pwszVerbHelpText;
 
+//! Haponov - mutex for concurrency control
 	std::mutex mu;
 
+//! Haponov - process file info:
+	//1) get file { name, size, creation date, ala checksum },
+	//2) sort file names with according info
 	void processSelectedFiles(wchar_t * path);
 };
