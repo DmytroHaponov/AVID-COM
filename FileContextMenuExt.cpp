@@ -13,7 +13,8 @@ implementing and registering such a handler, you can dynamically add items to
 an object's context menu, customized for the particular object.
 
 The example context menu handler adds the menu item "Avid the Best"
-to the context menu when you right-click any number of selected files in the Windows Explorer.
+to the context menu when you right-click any number of selected files in the 
+Windows Explorer.
 Clicking the menu item brings up a message box that displays the full path
 of selected files.
 
@@ -84,7 +85,8 @@ std::wstring FileContextMenuExt::s2ws(const std::string & s)
 }
 
 //! Haponov function - modified other msdn code sample
-BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize)
+BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, 
+												LPTSTR lpszString, DWORD dwSize)
 {
 	FILETIME ftCreate, ftAccess, ftWrite;
 	SYSTEMTIME stUTC, stLocal;
@@ -99,7 +101,9 @@ BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD 
 	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
 	// Build a string showing the date and time.
-	dwRet = StringCchPrintfW(lpszString, dwSize, TEXT("%02d/%02d/%d %02d:%02d"), stLocal.wMonth, stLocal.wDay, stLocal.wYear, stLocal.wHour, stLocal.wMinute);
+	dwRet = StringCchPrintfW(lpszString, dwSize, TEXT("%02d/%02d/%d %02d:%02d"),
+			stLocal.wMonth, stLocal.wDay, stLocal.wYear, stLocal.wHour, 
+			stLocal.wMinute);
 
 	if (S_OK == dwRet)
 		return TRUE;
@@ -180,10 +184,12 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 
 	// Haponov: get a string with creation time of file
 	wchar_t temp_forCreationTime[MAX_PATH];
-	if (!GetCreationTime(hFile, temp_forCreationTime, ARRAYSIZE(temp_forCreationTime)))
+	if (!GetCreationTime(hFile, temp_forCreationTime, 
+											ARRAYSIZE(temp_forCreationTime)))
 		return;
 	std::wstring ws_creationTime(temp_forCreationTime);
-	std::string resultCreationTime(ws_creationTime.begin(), ws_creationTime.end());	
+	std::string resultCreationTime(ws_creationTime.begin(), 
+														ws_creationTime.end());	
 
 	// Haponov: get a string with ala checksum
 	DWORD checksum = getCheckSum(path);
@@ -192,8 +198,9 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
 	std::string result_checkSum = streamCheckSum.str();
 
 	// Haponov: create a resulting string for displaying
-	atLast += ";   size: ";   atLast += result_size;   atLast += ";   creation time: ";  
-	atLast += resultCreationTime;   atLast += ";   checksum: ";   atLast += result_checkSum;
+	atLast += ";   size: ";   atLast += result_size;  
+	atLast += " KB;   creation time: ";  	atLast += resultCreationTime; 
+	atLast += "   checksum: ";   atLast += result_checkSum;
 
 	// Haponov: protect shared std::set<std::string> sortedFiles
 	mu.lock(); 
@@ -277,14 +284,18 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 					{
 						wchar_t temp_forName[MAX_PATH];
 						// Get the name of the file.
-						if (0 != DragQueryFile(hDrop, i, temp_forName /*such path is written to temp_forName*/, ARRAYSIZE(temp_forName)))
+						if (0 != DragQueryFile(hDrop, i, temp_forName 
+							/*such path is written to temp_forName*/,
+							ARRAYSIZE(temp_forName)))
 						{
-							threads.push_back(std::thread(&FileContextMenuExt::processSelectedFiles, this, temp_forName));
+							threads.push_back(std::thread(&FileContextMenuExt::
+									processSelectedFiles, this, temp_forName));
 						}
 					}
 					//! Haponov: use the main thread to do part of the work
 					wchar_t temp1_forName[MAX_PATH];
-						if (0 != DragQueryFile(hDrop, 0, temp1_forName, ARRAYSIZE(temp1_forName)))
+						if (0 != DragQueryFile(hDrop, 0, temp1_forName,
+													ARRAYSIZE(temp1_forName)))
 						{
 							processSelectedFiles(temp1_forName);
 						}
@@ -294,13 +305,14 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
 						t.join();
 					}
 				}
-				//! Haponov: use only main thread in case a sinle file is selected
+				//! Haponov: use only main thread if a sinle file is selected
 				else
 				{
 					wchar_t temp_forName[MAX_PATH];
 					for (int i = nFiles - 1; i < nFiles; ++i)
 					{
-						if (0 != DragQueryFile(hDrop, i, temp_forName, ARRAYSIZE(temp_forName)))
+						if (0 != DragQueryFile(hDrop, i, temp_forName,
+													   ARRAYSIZE(temp_forName)))
 							processSelectedFiles(temp_forName);
 					}
 				}
@@ -483,7 +495,7 @@ IFACEMETHODIMP FileContextMenuExt::GetCommandString(UINT_PTR idCommand,
 	UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax)
 {
 	HRESULT hr = E_INVALIDARG;
-    
+	
 	if (idCommand == IDM_DISPLAY)
 	{
 		switch (uFlags)

@@ -39,12 +39,17 @@ public:
     IFACEMETHODIMP_(ULONG) Release();
 
     // IShellExtInit
-    IFACEMETHODIMP Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJECT pDataObj, HKEY hKeyProgID);
+    IFACEMETHODIMP Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJECT pDataObj, 
+															   HKEY hKeyProgID);
 
     // IContextMenu
-    IFACEMETHODIMP QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags);
+    IFACEMETHODIMP QueryContextMenu(HMENU hMenu, UINT indexMenu, 
+									UINT idCmdFirst, UINT idCmdLast,
+									UINT uFlags);
     IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO pici);
-    IFACEMETHODIMP GetCommandString(UINT_PTR idCommand, UINT uFlags, UINT *pwReserved, LPSTR pszName, UINT cchMax);
+    IFACEMETHODIMP GetCommandString(UINT_PTR idCommand, UINT uFlags,
+									UINT *pwReserved, LPSTR pszName,
+									UINT cchMax);
 	
     FileContextMenuExt(void);
 
