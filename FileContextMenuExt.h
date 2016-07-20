@@ -40,17 +40,17 @@ public:
 
     // IShellExtInit
     IFACEMETHODIMP Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJECT pDataObj, 
-															   HKEY hKeyProgID);
+                                                               HKEY hKeyProgID);
 
     // IContextMenu
     IFACEMETHODIMP QueryContextMenu(HMENU hMenu, UINT indexMenu, 
-									UINT idCmdFirst, UINT idCmdLast,
-									UINT uFlags);
+                                    UINT idCmdFirst, UINT idCmdLast,
+                                    UINT uFlags);
     IFACEMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO pici);
     IFACEMETHODIMP GetCommandString(UINT_PTR idCommand, UINT uFlags,
-									UINT *pwReserved, LPSTR pszName,
-									UINT cchMax);
-	
+                                    UINT *pwReserved, LPSTR pszName,
+                                    UINT cchMax);
+    
     FileContextMenuExt(void);
 
 protected:
@@ -60,17 +60,17 @@ private:
     // Reference count of component.
     long m_cRef;
 
-//! Haponov container for displaying files info
-	std::set<std::string> sortedFiles;
+//! Haponov: container for displaying files info
+    std::set<std::string> sortedFiles;
 
-//! Haponov - convert string to wstring
-	std::wstring s2ws(const std::string& s);
+//! Haponov: convert string to wstring
+    std::wstring s2ws(const std::string& s);
 
-//! Haponov - get file creation time
-	BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
+//! Haponov: get file creation time
+    BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
 
-//! Haponov - calculate checksum
-	DWORD getCheckSum(wchar_t * path);
+//! Haponov: calculate checksum
+    DWORD getCheckSum(wchar_t * path);
 
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);
@@ -84,11 +84,11 @@ private:
     PCSTR m_pszVerbHelpText;
     PCWSTR m_pwszVerbHelpText;
 
-//! Haponov - mutex for concurrency control
-	std::mutex mu;
+//! Haponov: mutex for concurrency control
+    std::mutex mu;
 
-//! Haponov - process file info:
-	//1) get file { name, size, creation date, ala checksum },
-	//2) sort file names with according info
-	void processSelectedFiles(wchar_t * path);
+//! Haponov: process file info:
+    //1) get file { name, size, creation date, ala checksum },
+    //2) sort file names with according info
+    void processSelectedFiles(wchar_t * path);
 };
