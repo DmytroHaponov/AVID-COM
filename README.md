@@ -7,3 +7,5 @@ instructions to install:
 instructions to uninstall:
 1) run "regsvr32 /u 'pathTo'\CppShellExtContextMenuHandler.dll"
 2) reboot windows
+
+![](thumbnail.png)
