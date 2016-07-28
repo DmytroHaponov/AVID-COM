@@ -62,6 +62,9 @@ private:
 
 //! Haponov: container for displaying files info
     std::set<std::string> sortedFiles;
+//! Haponov: container for full paths of selected files,
+//! is used provide this info to threads of void processSelectedFiles(ws_name)
+    std::vector<std::wstring> filePaths;
 
 //! Haponov: convert string to wstring
     std::wstring s2ws(const std::string& s);
@@ -70,7 +73,7 @@ private:
     BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
 
 //! Haponov: calculate checksum
-    DWORD getCheckSum(wchar_t * path);
+    DWORD getCheckSum(std::wstring path);
 
     // The method that handles the "display" verb.
     void OnVerbDisplayFileName(HWND hWnd);
@@ -90,5 +93,5 @@ private:
 //! Haponov: process file info:
     //1) get file { name, size, creation date, ala checksum },
     //2) sort file names with according info
-    void processSelectedFiles(wchar_t * path);
+    void processSelectedFiles(std::wstring ws_name);
 };

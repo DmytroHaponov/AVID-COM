@@ -111,7 +111,7 @@ BOOL FileContextMenuExt::GetCreationTime(HANDLE hFile,
 }
 
 //! Haponov function
-DWORD FileContextMenuExt::getCheckSum(wchar_t * path)
+DWORD FileContextMenuExt::getCheckSum(std::wstring path)
 {
     DWORD checksum = 0;
     char byte;
@@ -149,14 +149,15 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
 }
 
 //! Haponov function
-void FileContextMenuExt::processSelectedFiles(wchar_t * path)
+void FileContextMenuExt::processSelectedFiles(std::wstring ws_name)
 {
     //! Haponov: all string formats must be converted to std::string 
     //! in order to conveniently use strings in STL containers
     //!------------------------------
 
     //! Haponov: convert full path of file to string
-    std::wstring ws_name(path);
+   
+    //std::wstring ws_name(path);
     std::string atLast(ws_name.begin(), ws_name.end()); 
     //! Haponov: get a string with filename only - WO full path
     std::size_t found = atLast.find_last_of("/\\");
@@ -203,7 +204,11 @@ void FileContextMenuExt::processSelectedFiles(wchar_t * path)
                                                         ws_creationTime.end());	
 
     // Haponov: get a string with ala checksum
-    DWORD checksum = getCheckSum(path);
+  //  std::wstring ws = ws_name;
+  //const wchar_t t = ws.c_str();
+   // LPCWSTR t = ws_name.c_str();
+    //DWORD checksum = getCheckSum(path);
+    DWORD checksum = getCheckSum(ws_name);
     std::ostringstream streamCheckSum;
     streamCheckSum << checksum;
     std::string result_checkSum = streamCheckSum.str();
@@ -294,22 +299,27 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
                     for (int i = 0; i < nFiles; ++i)
                     {
                         wchar_t temp_forName[MAX_PATH];
-                        // Get the name of the file.
+
+                        // Get full path of the file.
                         if (0 != DragQueryFile(hDrop, i, temp_forName 
                             /*such path is written to temp_forName*/,
                             ARRAYSIZE(temp_forName)))
                         {
+                            std::wstring ws(temp_forName);
+                            //std::string temp_vec(ws.begin(), ws.end());
+                            //filePaths.push_back(temp_vec);
+                            filePaths.push_back(ws);
                             threads.push_back(std::thread(&FileContextMenuExt::
-                                    processSelectedFiles, this, temp_forName));
+                                    processSelectedFiles, this, filePaths[i]));
                         }
                     }
                     //! Haponov: use the main thread to do part of the work
-                    wchar_t temp1_forName[MAX_PATH];
-                        if (0 != DragQueryFile(hDrop, 0, temp1_forName,
-                                                    ARRAYSIZE(temp1_forName)))
-                        {
-                            processSelectedFiles(temp1_forName);
-                        }
+                    //wchar_t temp1_forName[MAX_PATH];
+                    //    if (0 != DragQueryFile(hDrop, 0, temp1_forName,
+                    //                                ARRAYSIZE(temp1_forName)))
+                    //    {
+                    //        processSelectedFiles(temp1_forName);
+                    //    }
                     
                     for (auto &t : threads)
                     {
