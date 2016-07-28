@@ -28,7 +28,7 @@ DllUnregisterServer unregisters the COM server and the context menu handler.
 // {BFD98515-CD74-48A4-98E2-13D209E3EE4F}
 const CLSID CLSID_FileContextMenuExt = 
 { 0xBFD98515, 0xCD74, 0x48A4, { 0x98, 0xE2, 0x13, 0xD2, 0x09, 0xE3, 0xEE, 
-																	  0x4F } };
+                                                                      0x4F } };
 
 
 HINSTANCE   g_hInst     = NULL;
@@ -37,20 +37,20 @@ long        g_cDllRef   = 0;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
+    switch (dwReason)
+    {
+    case DLL_PROCESS_ATTACH:
         // Hold the instance of this DLL module, we will use it to get the 
         // path of the DLL to register the component.
         g_hInst = hModule;
         DisableThreadLibraryCalls(hModule);
         break;
-	case DLL_THREAD_ATTACH:
-	case DLL_THREAD_DETACH:
-	case DLL_PROCESS_DETACH:
-		break;
-	}
-	return TRUE;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
 }
 
 

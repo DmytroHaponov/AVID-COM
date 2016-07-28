@@ -61,7 +61,7 @@ IFACEMETHODIMP_(ULONG) ClassFactory::Release()
 //
 
 IFACEMETHODIMP ClassFactory::CreateInstance(IUnknown *pUnkOuter, REFIID riid, 
-																	void **ppv)
+                                                                    void **ppv)
 {
     HRESULT hr = CLASS_E_NOAGGREGATION;
 
