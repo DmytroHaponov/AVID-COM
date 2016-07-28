@@ -292,34 +292,34 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
             UINT nFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
             if (nFiles)
             {
-                if (nFiles > 1)
+                if (nFiles > 1) 
                 {
                     std::vector<std::thread> threads;
 
-                    for (int i = 0; i < nFiles; ++i)
+                    for (UINT i = 0; i < nFiles - 1; ++i)
                     {
                         wchar_t temp_forName[MAX_PATH];
 
                         // Get full path of the file.
                         if (0 != DragQueryFile(hDrop, i, temp_forName 
                             /*such path is written to temp_forName*/,
-                            ARRAYSIZE(temp_forName)))
+                                                       ARRAYSIZE(temp_forName)))
                         {
                             std::wstring ws(temp_forName);
-                            //std::string temp_vec(ws.begin(), ws.end());
-                            //filePaths.push_back(temp_vec);
                             filePaths.push_back(ws);
                             threads.push_back(std::thread(&FileContextMenuExt::
                                     processSelectedFiles, this, filePaths[i]));
                         }
                     }
-                    //! Haponov: use the main thread to do part of the work
-                    //wchar_t temp1_forName[MAX_PATH];
-                    //    if (0 != DragQueryFile(hDrop, 0, temp1_forName,
-                    //                                ARRAYSIZE(temp1_forName)))
-                    //    {
-                    //        processSelectedFiles(temp1_forName);
-                    //    }
+                    //! Haponov: use the main thread to do part of the work -
+                    //! process the last file
+                    wchar_t temp1_forName[MAX_PATH];
+                        if (0 != DragQueryFile(hDrop, nFiles - 1, temp1_forName,
+                                                    ARRAYSIZE(temp1_forName)))
+                        {
+                            std::wstring ws(temp1_forName);
+                            processSelectedFiles(ws);
+                        }
                     
                     for (auto &t : threads)
                     {
@@ -330,12 +330,12 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
                 else
                 {
                     wchar_t temp_forName[MAX_PATH];
-                    for (int i = nFiles - 1; i < nFiles; ++i)
-                    {
-                        if (0 != DragQueryFile(hDrop, i, temp_forName,
-                                                       ARRAYSIZE(temp_forName)))
-                            processSelectedFiles(temp_forName);
-                    }
+                        if (0 != DragQueryFile(hDrop, 0, temp_forName,
+                            ARRAYSIZE(temp_forName)))
+                        {
+                            std::wstring ws(temp_forName);
+                            processSelectedFiles(ws);
+                        }
                 }
             }
             if (sortedFiles.size()) hr = S_OK;
