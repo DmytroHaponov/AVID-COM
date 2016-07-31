@@ -31,6 +31,8 @@ of selected files.
 #include <tchar.h>
 #include <fstream>
 
+#include "threadpool.h"
+
 #pragma comment(lib, "shlwapi.lib")
 
 
@@ -294,7 +296,8 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
             {
                 if (nFiles > 1) 
                 {
-                    std::vector<std::thread> threads;
+                    //std::vector<std::thread> threads;
+                    ThreadPool threadPool(std::thread::hardware_concurrency());
 
                     for (UINT i = 0; i < nFiles - 1; ++i)
                     {
@@ -307,8 +310,10 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
                         {
                             std::wstring ws(temp_forName);
                             filePaths.push_back(ws);
-                            threads.push_back(std::thread(&FileContextMenuExt::
-                                    processSelectedFiles, this, filePaths[i]));
+                            //threads.push_back(std::thread(&FileContextMenuExt::
+                            //        processSelectedFiles, this, filePaths[i]));
+                            threadPool.doJob(std::bind(&FileContextMenuExt::processSelectedFiles, this,
+                                filePaths[i]));
                         }
                     }
                     //! Haponov: use the main thread to do part of the work -
@@ -320,11 +325,11 @@ IFACEMETHODIMP FileContextMenuExt::Initialize(
                             std::wstring ws(temp1_forName);
                             processSelectedFiles(ws);
                         }
-                    
-                    for (auto &t : threads)
-                    {
-                        t.join();
-                    }
+                  //!Haponov: no need for joining here anymore  
+                    //for (auto &t : threads)
+                    //{
+                    //    t.join();
+                    //}
                 }
                 //! Haponov: use only main thread if a sinle file is selected
                 else
