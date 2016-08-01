@@ -61,14 +61,15 @@ private:
     long m_cRef;
 
 //! Haponov: container for displaying files info
-    std::set<std::string> sortedFiles;
+    std::set<std::wstring> sortedFiles;
 //! Haponov: container for full paths of selected files,
 //! is used provide this info to threads of void processSelectedFiles(ws_name)
     std::vector<std::wstring> filePaths;
 
+    /*       not used anymore
 //! Haponov: convert string to wstring
     std::wstring s2ws(const std::string& s);
-
+     */
 //! Haponov: get file creation time
     BOOL GetCreationTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize);
 
