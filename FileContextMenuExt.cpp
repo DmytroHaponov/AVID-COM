@@ -145,7 +145,7 @@ void FileContextMenuExt::OnVerbDisplayFileName(HWND hWnd)
     }
     //! Haponov: prepare message string to be sent to MessageBox
     std::wstring stemp = s2ws(sum);
-    LPCWSTR msg = stemp.c_str();
+    LPCTSTR msg = stemp.c_str();
     MessageBox(hWnd, msg, L"CppShellExtContextMenuHandler", MB_OK);
     //! end of Haponov changes
 }
@@ -206,10 +206,6 @@ void FileContextMenuExt::processSelectedFiles(std::wstring ws_name)
                                                         ws_creationTime.end());	
 
     // Haponov: get a string with ala checksum
-  //  std::wstring ws = ws_name;
-  //const wchar_t t = ws.c_str();
-   // LPCWSTR t = ws_name.c_str();
-    //DWORD checksum = getCheckSum(path);
     DWORD checksum = getCheckSum(ws_name);
     std::ostringstream streamCheckSum;
     streamCheckSum << checksum;
